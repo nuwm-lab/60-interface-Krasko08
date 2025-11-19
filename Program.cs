@@ -1,205 +1,118 @@
-using System;
+﻿using System;
 
 namespace LabWork
 {
-    // --------------------- ІНТЕРФЕЙС ---------------------
-    public interface ITriangle
+    // ======================= ІНТЕРФЕЙС =======================
+    public interface IPrintable
     {
-        double SideA { get; set; }
-        double SideB { get; }
-        double SideC { get; }
-        double AngleA { get; set; }
-        double AngleB { get; set; }
-        double AngleC { get; }
-
-        double GetPerimeter();
-        void PrintInfo();
+        void PrintCoefficients();
+        bool Contains(double x, double y);
     }
 
-    // --------------------- АБСТРАКТНИЙ КЛАС ---------------------
-    public abstract class TriangleBase : ITriangle
+    // =================== АБСТРАКТНИЙ КЛАС ====================
+    public abstract class Conic : IPrintable
     {
-        public abstract double SideA { get; set; }
-        public abstract double SideB { get; protected set; }
-        public abstract double SideC { get; protected set; }
+        public double A11 { get; protected set; }
+        public double A12 { get; protected set; }
+        public double A22 { get; protected set; }
+        public double B1 { get; protected set; }
+        public double B2 { get; protected set; }
+        public double C { get; protected set; }
 
-        public abstract double AngleA { get; set; }
-        public abstract double AngleB { get; set; }
-        public abstract double AngleC { get; protected set; }
-
-        public abstract double GetPerimeter();
-
-        public abstract void PrintInfo();
-
-        public TriangleBase()
+        protected Conic(double a11, double a12, double a22, double b1, double b2, double c)
         {
-            Console.WriteLine("✔ Створено трикутник (базовий клас)");
+            A11 = a11;
+            A12 = a12;
+            A22 = a22;
+            B1 = b1;
+            B2 = b2;
+            C = c;
+
+            Console.WriteLine("✔ Створено криву другого порядку (Conic)");
         }
 
-        ~TriangleBase()
+        ~Conic()
         {
-            Console.WriteLine("✖ Знищено обʼєкт базового класу");
-        }
-    }
-
-    // --------------------- РІВНОСТОРОННІЙ ТРИКУТНИК ---------------------
-    public class EquilateralTriangle : TriangleBase
-    {
-        private double _side;
-
-        public override double SideA
-        {
-            get => _side;
-            set
-            {
-                if (value <= 0)
-                    throw new Exception("Довжина сторони має бути додатною.");
-                _side = value;
-                SideB = _side;
-                SideC = _side;
-                AngleA = AngleB = AngleC = 60;
-            }
+            Console.WriteLine("✖ Знищено обʼєкт Conic");
         }
 
-        public override double SideB { get; protected set; }
-        public override double SideC { get; protected set; }
+        public abstract bool Contains(double x, double y);
 
-        public override double AngleA { get; set; }
-        public override double AngleB { get; set; }
-        public override double AngleC { get; protected set; }
-
-        public EquilateralTriangle(double side)
+        public virtual void PrintCoefficients()
         {
-            SideA = side;
-            Console.WriteLine("✔ Створено рівносторонній трикутник");
-        }
-
-        ~EquilateralTriangle()
-        {
-            Console.WriteLine("✖ Знищено рівносторонній трикутник");
-        }
-
-        public override double GetPerimeter()
-        {
-            return SideA * 3;
-        }
-
-        public override void PrintInfo()
-        {
-            Console.WriteLine("\n--- Рівносторонній трикутник ---");
-            Console.WriteLine($"Сторони: {SideA}, {SideB}, {SideC}");
-            Console.WriteLine($"Кути: {AngleA}°, {AngleB}°, {AngleC}°");
-            Console.WriteLine($"Периметр = {GetPerimeter()}");
+            Console.WriteLine("\n--- Коефіцієнти рівняння кривої другого порядку ---");
+            Console.WriteLine($"A11 = {A11}, A12 = {A12}, A22 = {A22}");
+            Console.WriteLine($"B1 = {B1}, B2 = {B2}");
+            Console.WriteLine($"C = {C}");
         }
     }
 
-    // --------------------- ПРОСТИЙ ТРИКУТНИК ---------------------
-    public class Triangle : TriangleBase
+    // ======================== ЕЛІПС ===========================
+    public class Ellipse : Conic
     {
-        private double _sideA;
-        private double _angleA;
-        private double _angleB;
+        public double A { get; private set; } // велика піввісь
+        public double B { get; private set; } // мала піввісь
 
-        public override double SideA
+        public Ellipse(double a, double b)
+            : base(
+                  a11: 1 / (a * a),
+                  a12: 0,
+                  a22: 1 / (b * b),
+                  b1: 0,
+                  b2: 0,
+                  c: -1)
         {
-            get => _sideA;
-            set
-            {
-                if (value <= 0)
-                    throw new Exception("Сторона має бути додатною.");
-                _sideA = value;
-            }
+            if (a <= 0 || b <= 0)
+                throw new ArgumentException("Півосі еліпса повинні бути додатними.");
+
+            A = a;
+            B = b;
+
+            Console.WriteLine("✔ Створено еліпс");
         }
 
-        public override double SideB { get; protected set; }
-        public override double SideC { get; protected set; }
-
-        public override double AngleA
+        ~Ellipse()
         {
-            get => _angleA;
-            set
-            {
-                if (value <= 0 || value >= 180)
-                    throw new Exception("Кут має бути у межах (0;180)");
-                _angleA = value;
-                UpdateThirdAngle();
-            }
+            Console.WriteLine("✖ Знищено еліпс");
         }
 
-        public override double AngleB
+        public override bool Contains(double x, double y)
         {
-            get => _angleB;
-            set
-            {
-                if (value <= 0 || value >= 180)
-                    throw new Exception("Кут має бути у межах (0;180)");
-                _angleB = value;
-                UpdateThirdAngle();
-            }
+            double value = (x * x) / (A * A) + (y * y) / (B * B);
+            return value <= 1;
         }
 
-        public override double AngleC { get; protected set; }
-
-        private void UpdateThirdAngle()
+        public override void PrintCoefficients()
         {
-            AngleC = 180 - AngleA - AngleB;
-            if (AngleC <= 0)
-                throw new Exception("Сума двох кутів повинна бути < 180.");
-            CalculateOtherSides();
-        }
-
-        private void CalculateOtherSides()
-        {
-            double radA = AngleA * Math.PI / 180;
-            double radB = AngleB * Math.PI / 180;
-            double radC = AngleC * Math.PI / 180;
-
-            SideB = SideA * Math.Sin(radB) / Math.Sin(radA);
-            SideC = SideA * Math.Sin(radC) / Math.Sin(radA);
-        }
-
-        public Triangle(double side, double angleA, double angleB)
-        {
-            SideA = side;
-            AngleA = angleA;
-            AngleB = angleB;
-
-            Console.WriteLine("✔ Створено довільний трикутник");
-        }
-
-        ~Triangle()
-        {
-            Console.WriteLine("✖ Знищено трикутник");
-        }
-
-        public override double GetPerimeter()
-        {
-            return SideA + SideB + SideC;
-        }
-
-        public override void PrintInfo()
-        {
-            Console.WriteLine("\n--- Довільний трикутник ---");
-            Console.WriteLine($"Сторони: A={SideA:F2}, B={SideB:F2}, C={SideC:F2}");
-            Console.WriteLine($"Кути: A={AngleA}°, B={AngleB}°, C={AngleC}°");
-            Console.WriteLine($"Периметр = {GetPerimeter():F2}");
+            base.PrintCoefficients();
+            Console.WriteLine($"Еліпс: a = {A}, b = {B}");
         }
     }
 
-    // --------------------- MAIN ---------------------
+    // ========================= MAIN ===========================
     class Program
     {
         static void Main(string[] args)
         {
             try
             {
-                // Рівносторонній
-                ITriangle eq = new EquilateralTriangle(10);
-                eq.PrintInfo();
+                IPrintable ellipse = new Ellipse(5, 3);
 
-                // Довільний
-                ITriangle t = new Triangle(12, 40, 70);
-                t.PrintInfo();
+                ellipse.PrintCoefficients();
+
+                Console.WriteLine("\nПеревірка належності точки еліпсу:");
+
+                Console.Write("Введіть x: ");
+                double x = Convert.ToDouble(Console.ReadLine());
+
+                Console.Write("Введіть y: ");
+                double y = Convert.ToDouble(Console.ReadLine());
+
+                bool inside = ellipse.Contains(x, y);
+
+                Console.WriteLine(inside
+                    ? "Точка належить еліпсу."
+                    : "Точка не належить еліпсу.");
             }
             catch (Exception ex)
             {
