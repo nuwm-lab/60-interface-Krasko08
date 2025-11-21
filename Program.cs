@@ -1,113 +1,124 @@
 using System;
 
-namespace LabWork
+namespace GeometryLab
 {
-    // ======================= ІНТЕРФЕЙС =======================
-    public interface IPrintable
+    // Інтерфейс для кривих
+    public interface ICurve
     {
+        void SetCoefficients();
         void PrintCoefficients();
-        bool Contains(double x, double y); 
+        bool ContainsPoint(double x, double y);
     }
 
-    // =================== АБСТРАКТНИЙ КЛАС ====================
-    public abstract class Conic : IPrintable
+    // Абстрактний клас
+    public abstract class CurveBase : ICurve
     {
         public abstract void SetCoefficients();
         public abstract void PrintCoefficients();
-        public abstract bool Contains(double x, double y);
+        public abstract bool ContainsPoint(double x, double y);
+
+        ~CurveBase()
+        {
+            Console.WriteLine("Destructor of CurveBase called");
+        }
     }
 
-    // ======================== КЛАС ЕЛІПС ======================
-    // Еліпс:  x^2/a^2 + y^2/b^2 = 1
-    public class Ellipse : Conic
+    // Клас Еліпс
+    public class Ellipse : CurveBase
     {
-        private double a, b;
+        private double a;
+        private double b;
+
+        public Ellipse() { }
+
+        public Ellipse(double a, double b)
+        {
+            this.a = a;
+            this.b = b;
+        }
 
         public override void SetCoefficients()
         {
-            Console.Write("Введіть a: ");
-            a = double.Parse(Console.ReadLine());
-
-            Console.Write("Введіть b: ");
-            b = double.Parse(Console.ReadLine());
+            Console.Write("Enter a: ");
+            a = Convert.ToDouble(Console.ReadLine());
+            Console.Write("Enter b: ");
+            b = Convert.ToDouble(Console.ReadLine());
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"Еліпс: x^2/{a * a} + y^2/{b * b} = 1");
+            Console.WriteLine($"Ellipse: x^2/{a}^2 + y^2/{b}^2 = 1");
         }
 
-        public override bool Contains(double x, double y)
+        public override bool ContainsPoint(double x, double y)
         {
-            double v = (x * x) / (a * a) + (y * y) / (b * b);
-            return Math.Abs(v - 1) < 0.0001 || v < 1; // точка на або в середині еліпса
+            return (x * x) / (a * a) + (y * y) / (b * b) <= 1;
+        }
+
+        ~Ellipse()
+        {
+            Console.WriteLine("Destructor of Ellipse called");
         }
     }
 
-    // =================== КРИВА ДРУГОГО ПОРЯДКУ ==================
-    // a11x² + 2a12xy + a22y² + b1x + b2y + c = 0
-    public class SecondOrderCurve : Conic
+    // Квадратична крива другого порядку
+    public class SecondOrderCurve : CurveBase
     {
         private double a11, a12, a22, b1, b2, c;
 
+        public SecondOrderCurve() { }
+
         public override void SetCoefficients()
         {
-            Console.Write("Введіть a11: ");
-            a11 = double.Parse(Console.ReadLine());
-            Console.Write("Введіть a12: ");
-            a12 = double.Parse(Console.ReadLine());
-            Console.Write("Введіть a22: ");
-            a22 = double.Parse(Console.ReadLine());
-            Console.Write("Введіть b1: ");
-            b1 = double.Parse(Console.ReadLine());
-            Console.Write("Введіть b2: ");
-            b2 = double.Parse(Console.ReadLine());
-            Console.Write("Введіть c: ");
-            c = double.Parse(Console.ReadLine());
+            Console.Write("a11: "); a11 = Convert.ToDouble(Console.ReadLine());
+            Console.Write("a12: "); a12 = Convert.ToDouble(Console.ReadLine());
+            Console.Write("a22: "); a22 = Convert.ToDouble(Console.ReadLine());
+            Console.Write("b1: "); b1 = Convert.ToDouble(Console.ReadLine());
+            Console.Write("b2: "); b2 = Convert.ToDouble(Console.ReadLine());
+            Console.Write("c: "); c = Convert.ToDouble(Console.ReadLine());
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"Крива другого порядку:");
-            Console.WriteLine($"{a11}x² + 2*{a12}xy + {a22}y² + {b1}x + {b2}y + {c} = 0");
+            Console.WriteLine($"{a11}x^2 + 2{a12}xy + {a22}y^2 + {b1}x + {b2}y + {c} = 0");
         }
 
-        public override bool Contains(double x, double y)
+        public override bool ContainsPoint(double x, double y)
         {
-            double v = a11 * x * x + 2 * a12 * x * y + a22 * y * y + b1 * x + b2 * y + c;
-            return Math.Abs(v) < 0.0001;
+            double val = a11 * x * x + 2 * a12 * x * y + a22 * y * y + b1 * x + b2 * y + c;
+            return Math.Abs(val) < 1e-6;
+        }
+
+        ~SecondOrderCurve()
+        {
+            Console.WriteLine("Destructor of SecondOrderCurve called");
         }
     }
 
-    // ============================ MAIN =============================
+    // Демонстрація роботи
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Створення еліпса:");
             Ellipse ellipse = new Ellipse();
             ellipse.SetCoefficients();
             ellipse.PrintCoefficients();
 
-            Console.Write("Введіть точку X: ");
-            double x = double.Parse(Console.ReadLine());
-            Console.Write("Введіть точку Y: ");
-            double y = double.Parse(Console.ReadLine());
+            Console.Write("Enter test point X: ");
+            double x = Convert.ToDouble(Console.ReadLine());
+            Console.Write("Enter test point Y: ");
+            double y = Convert.ToDouble(Console.ReadLine());
 
-            if (ellipse.Contains(x, y))
-                Console.WriteLine("Точка належить еліпсу.");
-            else
-                Console.WriteLine("Точка НЕ належить еліпсу.");
+            Console.WriteLine(ellipse.ContainsPoint(x, y)
+                ? "Point belongs to ellipse"
+                : "Point does NOT belong to ellipse");
 
-            Console.WriteLine("\nСтворення кривої другого порядку:");
             SecondOrderCurve curve = new SecondOrderCurve();
             curve.SetCoefficients();
             curve.PrintCoefficients();
-
-            if (curve.Contains(x, y))
-                Console.WriteLine("Точка належить кривій другого порядку.");
-            else
-                Console.WriteLine("Точка НЕ належить цій кривій.");
+            Console.WriteLine(curve.ContainsPoint(x, y)
+                ? "Point satisfies second‑order curve"
+                : "Point does NOT satisfy curve equation");
         }
     }
 }
