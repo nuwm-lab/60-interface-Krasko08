@@ -1,128 +1,117 @@
-﻿using System;
+using System;
 
-namespace LabWork
+namespace GeometryLab
 {
-    // ================== ІНТЕРФЕЙС =====================
-    public interface ITriangle
+    public interface ICurve
     {
-        double Perimeter();
-        void PrintInfo();
+        void SetCoefficients();
+        void PrintCoefficients();
+        bool ContainsPoint(double x, double y);
     }
 
-    // ================== АБСТРАКТНИЙ КЛАС =====================
-    public abstract class TriangleBase : ITriangle
+    public abstract class CurveBase : ICurve
     {
-        public double SideA { get; protected set; }
-        public double SideB { get; protected set; }
-        public double SideC { get; protected set; }
+        public abstract void SetCoefficients();
+        public abstract void PrintCoefficients();
+        public abstract bool ContainsPoint(double x, double y);
 
-        public double AngleA { get; protected set; }
-        public double AngleB { get; protected set; }
-        public double AngleC { get; protected set; }
-
-        public TriangleBase()
-        {
-            Console.WriteLine("► Конструктор TriangleBase");
-        }
-
-        ~TriangleBase()
-        {
-            Console.WriteLine("► Деструктор TriangleBase");
-        }
-
-        public abstract void CalculateOtherParameters();  
-        public abstract double Perimeter();
-
-        public virtual void PrintInfo()
-        {
-            Console.WriteLine("\n--- Інформація про трикутник ---");
-            Console.WriteLine($"Сторони: A={SideA:F3}, B={SideB:F3}, C={SideC:F3}");
-            Console.WriteLine($"Кути: A={AngleA:F3}, B={AngleB:F3}, C={AngleC:F3}");
-            Console.WriteLine($"Периметр = {Perimeter():F3}");
-        }
+        ~CurveBase() { }
     }
 
-
-    // ================== РІВНОСТОРОННІЙ ТРИКУТНИК =====================
-    public class EquilateralTriangle : TriangleBase
+    public class Ellipse : CurveBase
     {
-        public EquilateralTriangle(double side)
-        {
-            Console.WriteLine("► Конструктор EquilateralTriangle");
-            SideA = SideB = SideC = side;
+        private double _a;
+        private double _b;
 
-            AngleA = AngleB = AngleC = 60;
+        public double A
+        {
+            get => _a;
+            set { if (value > 0) _a = value; }
         }
 
-        ~EquilateralTriangle()
+        public double B
         {
-            Console.WriteLine("► Деструктор EquilateralTriangle");
+            get => _b;
+            set { if (value > 0) _b = value; }
         }
 
-        public override void CalculateOtherParameters()
+        public Ellipse() { }
+
+        public Ellipse(double a, double b)
         {
-            // У рівностороннього трьохкутника все вже відоме
+            A = a;
+            B = b;
         }
 
-        public override double Perimeter() => SideA * 3;
+        public override void SetCoefficients()
+        {
+            Console.Write("Enter a: ");
+            A = double.Parse(Console.ReadLine());
+            Console.Write("Enter b: ");
+            B = double.Parse(Console.ReadLine());
+        }
+
+        public override void PrintCoefficients()
+        {
+            Console.WriteLine($"Ellipse: x^2/{A}^2 + y^2/{B}^2 = 1");
+        }
+
+        public override bool ContainsPoint(double x, double y)
+        {
+            double value = (x * x) / (A * A) + (y * y) / (B * B);
+            return value <= 1.000000001;
+        }
+
+        ~Ellipse() { }
     }
 
-
-    // ================== ЗАГАЛЬНИЙ ТРИКУТНИК (одна сторона + 2 кути) =====================
-    public class GeneralTriangle : TriangleBase
+    public class QuadraticCurve : CurveBase
     {
-        public GeneralTriangle(double knownSide, double angleAdjacent1, double angleAdjacent2)
+        private double _a11, _a12, _a22, _b1, _b2, _c;
+
+        public override void SetCoefficients()
         {
-            Console.WriteLine("► Конструктор GeneralTriangle");
-
-            SideA = knownSide;
-            AngleB = angleAdjacent1;
-            AngleC = angleAdjacent2;
-            AngleA = 180 - AngleB - AngleC;
-
-            if (AngleA <= 0)
-                throw new Exception("Сума двох заданих кутів ≥ 180°. Трикутник неможливий.");
-
-            CalculateOtherParameters();
+            Console.Write("a11: "); _a11 = double.Parse(Console.ReadLine());
+            Console.Write("a12: "); _a12 = double.Parse(Console.ReadLine());
+            Console.Write("a22: "); _a22 = double.Parse(Console.ReadLine());
+            Console.Write("b1: "); _b1 = double.Parse(Console.ReadLine());
+            Console.Write("b2: "); _b2 = double.Parse(Console.ReadLine());
+            Console.Write("c: "); _c = double.Parse(Console.ReadLine());
         }
 
-        ~GeneralTriangle()
+        public override void PrintCoefficients()
         {
-            Console.WriteLine("► Деструктор GeneralTriangle");
+            Console.WriteLine($"{_a11}x^2 + 2{_a12}xy + {_a22}y^2 + {_b1}x + {_b2}y + {_c} = 0");
         }
 
-        public override void CalculateOtherParameters()
+        public override bool ContainsPoint(double x, double y)
         {
-            double radA = AngleA * Math.PI / 180;
-            double radB = AngleB * Math.PI / 180;
-            double radC = AngleC * Math.PI / 180;
-
-            // Закон синусів
-            SideB = SideA * Math.Sin(radB) / Math.Sin(radA);
-            SideC = SideA * Math.Sin(radC) / Math.Sin(radA);
+            double val = _a11 * x * x + 2 * _a12 * x * y + _a22 * y * y + _b1 * x + _b2 * y + _c;
+            return Math.Abs(val) < 1e-9;
         }
 
-        public override double Perimeter() => SideA + SideB + SideC;
+        ~QuadraticCurve() { }
     }
 
-
-    // ================== MAIN =====================
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("=== Демонстрація роботи з абстрактними класами та інтерфейсами ===");
+            ICurve ellipse = new Ellipse();
+            ellipse.SetCoefficients();
+            ellipse.PrintCoefficients();
 
-            // ===== Рівносторонній трикутник =====
-            EquilateralTriangle eq = new EquilateralTriangle(10);
-            eq.CalculateOtherParameters();
-            eq.PrintInfo();
+            Console.Write("Enter X: ");
+            double x = double.Parse(Console.ReadLine());
+            Console.Write("Enter Y: ");
+            double y = double.Parse(Console.ReadLine());
 
-            // ===== Загальний трикутник =====
-            GeneralTriangle gt = new GeneralTriangle(12, 50, 60);
-            gt.PrintInfo();
+            Console.WriteLine(ellipse.ContainsPoint(x, y) ? "Point is inside ellipse" : "Point is outside ellipse");
 
-            Console.WriteLine("\nПрограма виконана!");
+            ICurve curve = new QuadraticCurve();
+            curve.SetCoefficients();
+            curve.PrintCoefficients();
+            Console.WriteLine(curve.ContainsPoint(x, y) ? "Point satisfies quadratic curve" : "Point does NOT satisfy curve");
         }
     }
 }
