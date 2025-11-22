@@ -9,6 +9,7 @@ namespace GeometryLab
         bool ContainsPoint(double x, double y);
     }
 
+    // ===================== АБСТРАКТНИЙ КЛАС =====================
     public abstract class CurveBase : ICurve
     {
         public abstract void SetCoefficients();
@@ -18,6 +19,7 @@ namespace GeometryLab
         ~CurveBase() { }
     }
 
+    // =========================== ЕЛІПС ===========================
     public class Ellipse : CurveBase
     {
         private double _a;
@@ -26,13 +28,23 @@ namespace GeometryLab
         public double A
         {
             get => _a;
-            set { if (value > 0) _a = value; }
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Parameter 'a' must be positive.");
+                _a = value;
+            }
         }
 
         public double B
         {
             get => _b;
-            set { if (value > 0) _b = value; }
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Parameter 'b' must be positive.");
+                _b = value;
+            }
         }
 
         public Ellipse() { }
@@ -45,15 +57,13 @@ namespace GeometryLab
 
         public override void SetCoefficients()
         {
-            Console.Write("Enter a: ");
-            A = double.Parse(Console.ReadLine());
-            Console.Write("Enter b: ");
-            B = double.Parse(Console.ReadLine());
+            A = ReadDouble("Enter a: ");
+            B = ReadDouble("Enter b: ");
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"Ellipse: x^2/{A}^2 + y^2/{B}^2 = 1");
+            Console.WriteLine($"Ellipse equation: x²/{A * A} + y²/{B * B} = 1");
         }
 
         public override bool ContainsPoint(double x, double y)
@@ -62,26 +72,38 @@ namespace GeometryLab
             return value <= 1.000000001;
         }
 
+        private double ReadDouble(string message)
+        {
+            double result;
+            Console.Write(message);
+            while (!double.TryParse(Console.ReadLine(), out result) || result <= 0)
+            {
+                Console.Write("Invalid input. Try again: ");
+            }
+            return result;
+        }
+
         ~Ellipse() { }
     }
 
+    // ===================== КРИВА ДРУГОГО ПОРЯДКУ =====================
     public class QuadraticCurve : CurveBase
     {
         private double _a11, _a12, _a22, _b1, _b2, _c;
 
         public override void SetCoefficients()
         {
-            Console.Write("a11: "); _a11 = double.Parse(Console.ReadLine());
-            Console.Write("a12: "); _a12 = double.Parse(Console.ReadLine());
-            Console.Write("a22: "); _a22 = double.Parse(Console.ReadLine());
-            Console.Write("b1: "); _b1 = double.Parse(Console.ReadLine());
-            Console.Write("b2: "); _b2 = double.Parse(Console.ReadLine());
-            Console.Write("c: "); _c = double.Parse(Console.ReadLine());
+            _a11 = ReadDouble("a11: ");
+            _a12 = ReadDouble("a12: ");
+            _a22 = ReadDouble("a22: ");
+            _b1 = ReadDouble("b1: ");
+            _b2 = ReadDouble("b2: ");
+            _c  = ReadDouble("c:  ");
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"{_a11}x^2 + 2{_a12}xy + {_a22}y^2 + {_b1}x + {_b2}y + {_c} = 0");
+            Console.WriteLine($"Curve: {_a11}x² + 2({_a12})xy + {_a22}y² + {_b1}x + {_b2}y + {_c} = 0");
         }
 
         public override bool ContainsPoint(double x, double y)
@@ -90,28 +112,56 @@ namespace GeometryLab
             return Math.Abs(val) < 1e-9;
         }
 
+        private double ReadDouble(string message)
+        {
+            double result;
+            Console.Write(message);
+            while (!double.TryParse(Console.ReadLine(), out result))
+            {
+                Console.Write("Invalid input. Try again: ");
+            }
+            return result;
+        }
+
         ~QuadraticCurve() { }
     }
 
+    // =========================== MAIN ===========================
     class Program
     {
         static void Main()
         {
+            Console.WriteLine("=== Ellipse ===");
             ICurve ellipse = new Ellipse();
             ellipse.SetCoefficients();
             ellipse.PrintCoefficients();
 
-            Console.Write("Enter X: ");
-            double x = double.Parse(Console.ReadLine());
-            Console.Write("Enter Y: ");
-            double y = double.Parse(Console.ReadLine());
+            double x = ReadDouble("Enter X: ");
+            double y = ReadDouble("Enter Y: ");
 
-            Console.WriteLine(ellipse.ContainsPoint(x, y) ? "Point is inside ellipse" : "Point is outside ellipse");
+            Console.WriteLine(ellipse.ContainsPoint(x, y)
+                ? "Point is INSIDE ellipse"
+                : "Point is OUTSIDE ellipse");
 
+            Console.WriteLine("\n=== General Quadratic Curve ===");
             ICurve curve = new QuadraticCurve();
             curve.SetCoefficients();
             curve.PrintCoefficients();
-            Console.WriteLine(curve.ContainsPoint(x, y) ? "Point satisfies quadratic curve" : "Point does NOT satisfy curve");
+
+            Console.WriteLine(curve.ContainsPoint(x, y)
+                ? "Point satisfies the quadratic curve"
+                : "Point does NOT satisfy the curve");
+        }
+
+        static double ReadDouble(string message)
+        {
+            double result;
+            Console.Write(message);
+            while (!double.TryParse(Console.ReadLine(), out result))
+            {
+                Console.Write("Invalid number. Try again: ");
+            }
+            return result;
         }
     }
 }
