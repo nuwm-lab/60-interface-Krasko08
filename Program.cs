@@ -1,7 +1,8 @@
 using System;
 
-namespace GeometryLab
+namespace LabWork
 {
+    // ======================= ІНТЕРФЕЙС =======================
     public interface ICurve
     {
         void SetCoefficients();
@@ -9,159 +10,151 @@ namespace GeometryLab
         bool ContainsPoint(double x, double y);
     }
 
-    // ===================== АБСТРАКТНИЙ КЛАС =====================
+    // =================== АБСТРАКТНИЙ КЛАС ====================
     public abstract class CurveBase : ICurve
     {
         public abstract void SetCoefficients();
         public abstract void PrintCoefficients();
         public abstract bool ContainsPoint(double x, double y);
 
-        ~CurveBase() { }
+        public CurveBase()
+        {
+            Console.WriteLine("Викликано конструктор CurveBase");
+        }
+
+        ~CurveBase()
+        {
+            Console.WriteLine("Викликано деструктор CurveBase");
+        }
     }
 
-    // =========================== ЕЛІПС ===========================
+    // ======================== КЛАС ЕЛІПС ======================
+    // рівняння: x²/a² + y²/b² = 1
     public class Ellipse : CurveBase
     {
-        private double _a;
-        private double _b;
+        private double a;
+        private double b;
 
-        public double A
+        public Ellipse() : base()
         {
-            get => _a;
-            private set
-            {
-                if (value <= 0)
-                    throw new ArgumentException("Parameter 'a' must be positive.");
-                _a = value;
-            }
+            Console.WriteLine("Створено Ellipse");
         }
 
-        public double B
+        ~Ellipse()
         {
-            get => _b;
-            private set
-            {
-                if (value <= 0)
-                    throw new ArgumentException("Parameter 'b' must be positive.");
-                _b = value;
-            }
-        }
-
-        public Ellipse() { }
-
-        public Ellipse(double a, double b)
-        {
-            A = a;
-            B = b;
+            Console.WriteLine("Знищено Ellipse");
         }
 
         public override void SetCoefficients()
         {
-            A = ReadDouble("Enter a: ");
-            B = ReadDouble("Enter b: ");
+            Console.Write("Введіть a: ");
+            a = double.Parse(Console.ReadLine());
+
+            Console.Write("Введіть b: ");
+            b = double.Parse(Console.ReadLine());
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"Ellipse equation: x²/{A * A} + y²/{B * B} = 1");
+            Console.WriteLine($"Еліпс: x^2/{a}^2 + y^2/{b}^2 = 1");
         }
 
         public override bool ContainsPoint(double x, double y)
         {
-            double value = (x * x) / (A * A) + (y * y) / (B * B);
-            return value <= 1.000000001;
+            double left = (x * x) / (a * a) + (y * y) / (b * b);
+            return Math.Abs(left - 1.0) < 0.0001 || left < 1.0; 
         }
-
-        private double ReadDouble(string message)
-        {
-            double result;
-            Console.Write(message);
-            while (!double.TryParse(Console.ReadLine(), out result) || result <= 0)
-            {
-                Console.Write("Invalid input. Try again: ");
-            }
-            return result;
-        }
-
-        ~Ellipse() { }
     }
 
-    // ===================== КРИВА ДРУГОГО ПОРЯДКУ =====================
-    public class QuadraticCurve : CurveBase
+    // ============= КРИВА ДРУГОГО ПОРЯДКУ =====================
+    // a11*x^2 + 2*a12*x*y + a22*y^2 + b1*x + b2*y + c = 0
+    public class SecondOrderCurve : CurveBase
     {
-        private double _a11, _a12, _a22, _b1, _b2, _c;
+        private double a11, a12, a22, b1, b2, c;
+
+        public SecondOrderCurve() : base()
+        {
+            Console.WriteLine("Створено SecondOrderCurve");
+        }
+
+        ~SecondOrderCurve()
+        {
+            Console.WriteLine("Знищено SecondOrderCurve");
+        }
 
         public override void SetCoefficients()
         {
-            _a11 = ReadDouble("a11: ");
-            _a12 = ReadDouble("a12: ");
-            _a22 = ReadDouble("a22: ");
-            _b1 = ReadDouble("b1: ");
-            _b2 = ReadDouble("b2: ");
-            _c  = ReadDouble("c:  ");
+            Console.Write("a11 = ");
+            a11 = double.Parse(Console.ReadLine());
+
+            Console.Write("a12 = ");
+            a12 = double.Parse(Console.ReadLine());
+
+            Console.Write("a22 = ");
+            a22 = double.Parse(Console.ReadLine());
+
+            Console.Write("b1 = ");
+            b1 = double.Parse(Console.ReadLine());
+
+            Console.Write("b2 = ");
+            b2 = double.Parse(Console.ReadLine());
+
+            Console.Write("c = ");
+            c = double.Parse(Console.ReadLine());
         }
 
         public override void PrintCoefficients()
         {
-            Console.WriteLine($"Curve: {_a11}x² + 2({_a12})xy + {_a22}y² + {_b1}x + {_b2}y + {_c} = 0");
+            Console.WriteLine(
+                $"Крива 2-го порядку: {a11}x^2 + 2*{a12}xy + {a22}y^2 + {b1}x + {b2}y + {c} = 0"
+            );
         }
 
         public override bool ContainsPoint(double x, double y)
         {
-            double val = _a11 * x * x + 2 * _a12 * x * y + _a22 * y * y + _b1 * x + _b2 * y + _c;
-            return Math.Abs(val) < 1e-9;
-        }
+            double value = a11 * x * x +
+                           2 * a12 * x * y +
+                           a22 * y * y +
+                           b1 * x +
+                           b2 * y +
+                           c;
 
-        private double ReadDouble(string message)
-        {
-            double result;
-            Console.Write(message);
-            while (!double.TryParse(Console.ReadLine(), out result))
-            {
-                Console.Write("Invalid input. Try again: ");
-            }
-            return result;
+            return Math.Abs(value) < 0.0001; 
         }
-
-        ~QuadraticCurve() { }
     }
 
-    // =========================== MAIN ===========================
+    // ======================== MAIN ============================
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            Console.WriteLine("=== Ellipse ===");
-            ICurve ellipse = new Ellipse();
+            Console.WriteLine("=== ЕЛІПС ===");
+            Ellipse ellipse = new Ellipse();
             ellipse.SetCoefficients();
             ellipse.PrintCoefficients();
 
-            double x = ReadDouble("Enter X: ");
-            double y = ReadDouble("Enter Y: ");
+            Console.Write("\nВведіть x точки: ");
+            double x = double.Parse(Console.ReadLine());
 
-            Console.WriteLine(ellipse.ContainsPoint(x, y)
-                ? "Point is INSIDE ellipse"
-                : "Point is OUTSIDE ellipse");
+            Console.Write("Введіть y точки: ");
+            double y = double.Parse(Console.ReadLine());
 
-            Console.WriteLine("\n=== General Quadratic Curve ===");
-            ICurve curve = new QuadraticCurve();
+            Console.WriteLine(
+                ellipse.ContainsPoint(x, y)
+                    ? "Точка належить еліпсу"
+                    : "Точка НЕ належить еліпсу"
+            );
+
+            Console.WriteLine("\n=== КРИВА ДРУГОГО ПОРЯДКУ ===");
+            SecondOrderCurve curve = new SecondOrderCurve();
             curve.SetCoefficients();
             curve.PrintCoefficients();
 
-            Console.WriteLine(curve.ContainsPoint(x, y)
-                ? "Point satisfies the quadratic curve"
-                : "Point does NOT satisfy the curve");
-        }
-
-        static double ReadDouble(string message)
-        {
-            double result;
-            Console.Write(message);
-            while (!double.TryParse(Console.ReadLine(), out result))
-            {
-                Console.Write("Invalid number. Try again: ");
-            }
-            return result;
+            Console.WriteLine(
+                curve.ContainsPoint(x, y)
+                    ? "Точка належить кривій 2-го порядку"
+                    : "Точка НЕ належить кривій 2-го порядку"
+            );
         }
     }
 }
